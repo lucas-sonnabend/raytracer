@@ -22,6 +22,10 @@ impl Vector3 {
         let len = self.length();
         *self / len
     }
+
+    pub fn dot_product(&self, other: &Vector3) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
 }
 
 impl Add<Vector3> for Vector3 {
@@ -96,4 +100,11 @@ fn test_multiply_by_scalar() {
     let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
     let expected = Vector3 {x:6.0, y:8.0, z:10.0};
     assert_eq!(point1 * 2.0, expected);
+}
+
+#[test]
+fn test_dot_product() {
+    let point1 = Vector3 {x:2.0, y:3.0, z:5.0};
+    let point2 = Vector3 {x:100.0, y:10.0, z:1.0};
+    assert_eq!(point1.dot_product(&point2), 235.0);
 }
