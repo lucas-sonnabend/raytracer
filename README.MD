@@ -6,3 +6,5 @@ https://raytracing.github.io/books/RayTracingInOneWeekend.html
 
 https://bheisler.github.io/post/writing-raytracer-in-rust-part-1/
 
+
+https://doc.rust-lang.org/book
