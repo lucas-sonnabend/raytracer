@@ -8,3 +8,5 @@ https://bheisler.github.io/post/writing-raytracer-in-rust-part-1/
 
 
 https://doc.rust-lang.org/book
+
+https://blog.singleton.io/posts/2022-01-02-raytracing-with-rust/
