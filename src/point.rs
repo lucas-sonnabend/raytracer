@@ -1,29 +1,29 @@
 
 
 
-use std::{ops::{Add, Sub}, fmt};
+use std::ops::{Add, Sub, Mul};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Point {
-    x: i32,
-    y: i32,
-    z: i32,
+pub struct Vector3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
-impl Point {
-    fn length_squared(&self) -> i32 {
+impl Vector3 {
+    fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z 
     }
-    fn length(&self) -> f32 {
-        f32::sqrt(self.length_squared() as f32)
+    fn length(&self) -> f64 {
+        f64::sqrt(self.length_squared() as f64)
     }
 }
 
-impl Add<Point> for Point {
-    type Output = Point;
+impl Add<Vector3> for Vector3 {
+    type Output = Vector3;
 
-    fn add(self, _rhs: Point) -> Point {
-        Point {
+    fn add(self, _rhs: Vector3) -> Vector3 {
+        Vector3 {
             x: self.x + _rhs.x,
             y: self.y + _rhs.y,
             z: self.z + _rhs.z
@@ -31,10 +31,10 @@ impl Add<Point> for Point {
     }
 }
 
-impl Sub<Point> for Point {
-    type Output = Point;
-    fn sub(self, _rhs: Point) -> Point {
-        Point {
+impl Sub<Vector3> for Vector3 {
+    type Output = Vector3;
+    fn sub(self, _rhs: Vector3) -> Vector3 {
+        Vector3 {
             x: self.x - _rhs.x,
             y: self.y - _rhs.y,
             z: self.z - _rhs.z
@@ -42,22 +42,42 @@ impl Sub<Point> for Point {
     }
 }
 
+impl Mul<f64> for Vector3 {
+    type Output = Vector3;
+    fn mul(self, t: f64) -> Vector3 {
+        Vector3 {
+            x: self.x * t,
+            y: self.y * t,
+            z: self.z * t
+        }
+    }
+}
+
+pub type Point3 = Vector3;
+
 #[test]
 fn test_adding_to_positive_points() {
-    let point1 = Point {x:1, y:2, z:3};
-    let point2 = Point {x: 10, y:20, z:30};
+    let point1 = Vector3 {x:1.0, y:2.0, z:3.0};
+    let point2 = Vector3 {x: 10.0, y:20.0, z:30.0};
     let result = point1 + point2;
-    assert_eq!(result, Point {x:11, y: 22, z: 33});
+    assert_eq!(result, Vector3 {x:11.0, y: 22.0, z: 33.0});
 }
 
 #[test]
 fn test_length_squared() {
-    let point1 = Point {x:3, y:4, z:5};
-    assert_eq!(point1.length_squared(), 50);
+    let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
+    assert_eq!(point1.length_squared(), 50.0);
 }
 
 #[test]
 fn test_length() {
-    let point1 = Point {x:3, y:4, z:12};
+    let point1 = Vector3 {x:3.0, y:4.0, z:12.0};
     assert_eq!(point1.length(), 13.0);
+}
+
+#[test]
+fn test_multiply_by_scalar() {
+    let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
+    let expected = Vector3 {x:6.0, y:8.0, z:10.0};
+    assert_eq!(point1 * 2.0, expected);
 }
