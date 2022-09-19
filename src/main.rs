@@ -22,14 +22,15 @@ fn ray_color(ray: &Ray) -> Color {
 
 fn sphere_color(center: &Vector3, radius: f64, ray: &Ray) -> f64 {
     let oc = ray.origin - *center;
-    let a = ray.direction.dot_product(&ray.direction);
-    let b = 2.0 * oc.dot_product(&ray.direction);
-    let c = oc.dot_product(&oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = ray.direction.length_squared();
+    let half_b = oc.dot_product(&ray.direction);
+    let c = oc.length_squared() - radius * radius;
+
+    let discriminant = half_b * half_b - a * c;
     if discriminant < 0.0 {
         return -1.0
     } else {
-        return (-b - f64::sqrt(discriminant) ) / (2.0 * a)
+        return (-half_b - f64::sqrt(discriminant) ) / a
     }
 }
 
