@@ -1,7 +1,7 @@
 
 
 
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, Sub, Mul, Div};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vector3 {
@@ -11,11 +11,16 @@ pub struct Vector3 {
 }
 
 impl Vector3 {
-    fn length_squared(&self) -> f64 {
+    pub fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z 
     }
-    fn length(&self) -> f64 {
+    pub fn length(&self) -> f64 {
         f64::sqrt(self.length_squared() as f64)
+    }
+
+    pub fn unit_direction(&self) -> Vector3 {
+        let len = self.length();
+        *self / len
     }
 }
 
@@ -49,6 +54,17 @@ impl Mul<f64> for Vector3 {
             x: self.x * t,
             y: self.y * t,
             z: self.z * t
+        }
+    }
+}
+
+impl Div<f64> for Vector3 {
+    type Output = Vector3;
+    fn div(self, t: f64) -> Vector3 {
+        Vector3 {
+            x: self.x / t,
+            y: self.y / t,
+            z: self.z / t,
         }
     }
 }

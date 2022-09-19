@@ -1,8 +1,8 @@
 use crate::point::{Point3, Vector3};
 
-struct Ray {
-    origin: Point3,
-    direction: Vector3,
+pub struct Ray {
+    pub origin: Point3,
+    pub direction: Vector3,
 }
 
 impl Ray {

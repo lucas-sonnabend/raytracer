@@ -1,10 +1,34 @@
 use std::fmt;
+use std::ops::{Add, Mul};
 
 #[derive(Debug)]
 pub struct Color {
-    pub r: f32,
-    pub g: f32,
-    pub b: f32,
+    pub r: f64,
+    pub g: f64,
+    pub b: f64,
+}
+
+impl Add<Color> for Color {
+    type Output = Color;
+
+    fn add(self, _rhs: Color) -> Color {
+        Color {
+            r: self.r + _rhs.r,
+            g: self.g + _rhs.g,
+            b: self.b + _rhs.b
+        }
+    }
+}
+
+impl Mul<f64> for Color {
+    type Output = Color;
+    fn mul(self, t: f64) -> Color {
+        Color {
+            r: self.r * t,
+            g: self.g * t,
+            b: self.b * t
+        }
+    }
 }
 
 impl fmt::Display for Color {
