@@ -1,5 +1,6 @@
 use crate::point::{Point3, Vector3};
 
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Ray {
     pub origin: Point3,
     pub direction: Vector3,
@@ -11,7 +12,7 @@ impl Ray {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vector3,

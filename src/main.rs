@@ -4,6 +4,7 @@ use std::io::{self, Write};
 use raytracer::color::Color;
 use raytracer::point::{Point3, Vector3};
 use raytracer::sphere::Sphere;
+// use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
 
 fn ray_color(ray: &Ray, objects: &HittableList) -> Color {
@@ -45,6 +46,7 @@ fn create_image() -> () {
         objects: vec![
             Box::new(Sphere {center: Point3 {x: 0.0, y: 0.0, z: -1.0}, radius: 0.5}),
             Box::new(Sphere {center: Point3 {x: 0.8, y: -0.3, z: -0.9}, radius: 0.2}),
+            // Box::new(Torus {center: Point3 {x: -0.5, y: -0.3, z: -1.0}, a: 0.3, b: 0.1}),
             Box::new(Sphere {center: Point3 {x: 0.0, y: -100.5, z: -1.0}, radius: 100.0}),
         ]
     };
