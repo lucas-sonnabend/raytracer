@@ -3,7 +3,7 @@ use crate::{point::{Point3}, ray::{Ray, HitRecord, Hittable}};
 pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
-}
+} 
 
 impl Sphere {
     fn build_hit_record(&self, ray: &Ray, t: f64) -> HitRecord {
@@ -49,30 +49,44 @@ impl Hittable for Sphere {
     }
 }
 
-#[test]
-fn test_hit_sphere_in_center() {
-    let sphere = Sphere {center: Point3 {x:1.0, y: 2.0, z: 10.0}, radius: 1.0};
-    let ray = Ray {
-        origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
-        direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
-    };
-    let hit = sphere.hit(&ray, 0.0, 100.0);
-    let expected = HitRecord {
-        point: Point3 {x:1.0, y: 2.0, z: 9.0},
-        normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
-        t: 9.0,
-        front_face: true,
-    };
-    assert_eq!(hit, Some(expected));
+
+#[cfg(test)]
+mod tests {
+    use crate::{sphere::Sphere, point::Point3, ray::{Ray, HitRecord, Hittable}};
+
+    #[test]
+    fn test_hit_sphere_in_center() {
+        let sphere = Sphere {center: Point3 {x:1.0, y: 2.0, z: 10.0}, radius: 1.0};
+        let ray = Ray {
+            origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
+            direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
+        };
+        let hit = sphere.hit(&ray, 0.0, 100.0);
+        let expected = HitRecord {
+            point: Point3 {x:1.0, y: 2.0, z: 9.0},
+            normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
+            t: 9.0,
+            front_face: true,
+        };
+        assert_eq!(
+            hit,
+            Some(expected),
+            "actual hit {:?} was different from expected hit {:?}",
+            hit,
+            Some(expected)
+        );
+    }
+
+    #[test]
+    fn test_ray_missing_sphere() {
+        let sphere = Sphere {center: Point3 {x:1.0, y: 2.0, z: 10.0}, radius: 1.0};
+        let ray = Ray {
+            origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
+            direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
+        };
+        let hit = sphere.hit(&ray, 0.0, 100.0);
+        assert_eq!(hit, None);
+    }
 }
 
-#[test]
-fn test_ray_missing_sphere() {
-    let sphere = Sphere {center: Point3 {x:1.0, y: 2.0, z: 10.0}, radius: 1.0};
-    let ray = Ray {
-        origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
-        direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
-    };
-    let hit = sphere.hit(&ray, 0.0, 100.0);
-    assert_eq!(hit, None);
-}
+

@@ -75,7 +75,7 @@ impl Div<f64> for Vector3 {
     }
 }
 
-pub fn random_vector_in_unit_sphere<R: Rng + ?Sized>(rng: &mut R) -> Vector3 {
+pub fn random_vector_in_unit_sphere(rng: &mut impl Rng) -> Vector3 {
     loop {
         let random_vec = Vector3 {
             x: rng.gen_range(-1.0..1.0),
@@ -86,7 +86,10 @@ pub fn random_vector_in_unit_sphere<R: Rng + ?Sized>(rng: &mut R) -> Vector3 {
             return random_vec;
         }
     }
+}
 
+pub fn random_unit_vector(rng: &mut impl Rng) -> Vector3 {
+    random_vector_in_unit_sphere(rng).unit_direction()
 }
 
 pub type Point3 = Vector3;

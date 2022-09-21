@@ -3,8 +3,6 @@ use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}};
 
 use roots::find_roots_quartic;
 
-use approx::relative_eq;
-
 // formula (x^2 + y^2 + z^2 + A^2 - B^2)^2 = 4A^2 (x^2 + y^2)
 // plugging in the ray with a formula of ray.origin + t * ray.direction
 
@@ -91,67 +89,82 @@ impl Hittable for Torus {
     }
 }
 
-#[test]
-fn test_hit_torus_in_center() {
-    let torus = Torus {center: Point3 {x:1.0, y: 2.0, z: 10.0}, a: 1.0, b: 0.1};
-    let ray = Ray {
-        origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
-        direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
-    };
-    let hit = torus.hit(&ray, 0.0, 100.0);
-    let expected = HitRecord {
-        point: Point3 {x:1.0, y: 2.0, z: 8.9},
-        normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
-        t: 8.9,
-        front_face: true,
-    };
-    assert_almost_equal(hit, Some(expected));
+#[cfg(test)]
+mod tests {
+    use approx::relative_eq;
+    use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}};
+
+    use super::Torus;
+
+    #[test]
+    fn test_hit_torus_in_center() {
+        let torus = Torus {center: Point3 {x:1.0, y: 2.0, z: 10.0}, a: 1.0, b: 0.1};
+        let ray = Ray {
+            origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
+            direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
+        };
+        let hit = torus.hit(&ray, 0.0, 100.0);
+        let expected = HitRecord {
+            point: Point3 {x:1.0, y: 2.0, z: 8.9},
+            normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
+            t: 8.9,
+            front_face: true,
+        };
+        assert_almost_equal(hit, Some(expected));
+    }
+    
+    #[test]
+    fn test_hit_central_torus_in_center() {
+        let torus = Torus {center: Point3 {x:0.0, y: 0.0, z: 0.0}, a: 1.0, b: 0.1};
+        let ray = Ray {
+            origin: Point3 {x: 0.0, y: 0.0, z: -5.0},
+            direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
+        };
+        let hit = torus.hit(&ray, -100.0, 100.0);
+        let expected = HitRecord {
+            point: Point3 {x:0.0, y: 0.0, z: -1.1},
+            normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
+            t: 3.9,
+            front_face: true,
+        };
+        assert_almost_equal(hit, Some(expected));
+    }
+    
+    #[test]
+    fn test_ray_missing_torus() {
+        let sphere = Torus {center: Point3 {x:1.0, y: 2.0, z: 10.0}, a: 1.0, b: 0.2};
+        let ray = Ray {
+            origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
+            direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
+        };
+        let hit = sphere.hit(&ray, 0.0, 100.0);
+        assert_almost_equal(hit, None);
+    }
+    
+    fn assert_almost_equal(val: Option<HitRecord>, other: Option<HitRecord>) {
+        let is_almost_equal = match (val, other) {
+            (None, None) => true,
+            (Some(v1), Some(v2)) => {
+                vector_relative_eq(v1.point, v2.point) &&
+                vector_relative_eq(v1.normal, v2.normal) &&
+                relative_eq!(v1.t, v2.t, epsilon = 1.0e-6)
+            },
+            (None, Some(_)) => false,
+            (Some(_), None) => false, 
+        };
+        assert!(
+            is_almost_equal,
+            "actual hit {:?} was different from expected hit {:?}",
+            val,
+            other
+        );
+    }
+    
+    fn vector_relative_eq(v1: Vector3, v2: Vector3) -> bool {
+        relative_eq!(v1.x, v2.x, epsilon = 1.0e-6) &&
+        relative_eq!(v1.y, v2.y, epsilon = 1.0e-6) &&
+        relative_eq!(v1.z, v2.z, epsilon = 1.0e-6)
+    }
+    
 }
 
-#[test]
-fn test_hit_central_torus_in_center() {
-    let torus = Torus {center: Point3 {x:0.0, y: 0.0, z: 0.0}, a: 1.0, b: 0.1};
-    let ray = Ray {
-        origin: Point3 {x: 0.0, y: 0.0, z: -5.0},
-        direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
-    };
-    let hit = torus.hit(&ray, -100.0, 100.0);
-    let expected = HitRecord {
-        point: Point3 {x:0.0, y: 0.0, z: -1.1},
-        normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
-        t: 3.9,
-        front_face: true,
-    };
-    assert_almost_equal(hit, Some(expected));
-}
-
-#[test]
-fn test_ray_missing_torus() {
-    let sphere = Torus {center: Point3 {x:1.0, y: 2.0, z: 10.0}, a: 1.0, b: 0.2};
-    let ray = Ray {
-        origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
-        direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
-    };
-    let hit = sphere.hit(&ray, 0.0, 100.0);
-    assert_almost_equal(hit, None);
-}
-
-pub fn assert_almost_equal(val: Option<HitRecord>, other: Option<HitRecord>) {
-    let is_almost_equal = match (val, other) {
-        (None, None) => true,
-        (Some(v1), Some(v2)) => {
-            vector_relative_eq(v1.point, v2.point) &&
-            vector_relative_eq(v1.normal, v2.normal) &&
-            relative_eq!(v1.t, v2.t, epsilon = 1.0e-6)
-        },
-        (None, Some(_)) => false,
-        (Some(_), None) => false, 
-    };
-    assert!(is_almost_equal)
-}
-
-fn vector_relative_eq(v1: Vector3, v2: Vector3) -> bool {
-    relative_eq!(v1.x, v2.x, epsilon = 1.0e-6) &&
-    relative_eq!(v1.y, v2.y, epsilon = 1.0e-6) &&
-    relative_eq!(v1.z, v2.z, epsilon = 1.0e-6)
-}
