@@ -50,16 +50,7 @@ fn create_image() -> () {
             Box::new(Sphere {center: Point3 {x: 0.0, y: -100.5, z: -1.0}, radius: 100.0}),
         ]
     };
-    // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Point3 { x: 0.0, y: 0.0, z: 0.0};
-    let horizontal = Vector3 { x: viewport_width, y: 0.0, z: 0.0};
-    let vertical = Vector3 { x: 0.0, y: viewport_height, z: 0.0};
-    let distance = Vector3 { x: 0.0, y: 0.0, z: focal_length };
-    let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - distance;
+    let camera = get_camera(aspect_ratio);
 
     println!("P3\n{image_width} {image_height}\n255");
 
@@ -67,15 +58,47 @@ fn create_image() -> () {
         eprint!("\r Scanlines remaining {j}");
         io::stderr().flush().unwrap();
         for i in 0..image_width {
-            let u = i as f64 / (image_width - 1) as f64;
-            let v = j as f64 / (image_height - 1) as f64;
-            let ray = Ray {
-                origin,
-                direction: lower_left_corner + horizontal*u + vertical*v - origin,
-            };
+            let ray = camera.get_ray(
+                i as f64 / (image_width - 1) as f64,
+                j as f64 / (image_height - 1) as f64
+            );
             let color = ray_color(&ray, &objects);
 
             println!("{color}");
         } 
+    }
+}
+
+struct Camera {
+    origin: Point3,
+    horizontal: Vector3,
+    vertical: Vector3,
+    lower_left_corner: Vector3,
+}
+
+fn get_camera(aspect_ratio: f64) -> Camera {
+    let viewport_height = 2.0;
+    let viewport_width = aspect_ratio * viewport_height;
+    let focal_length = 1.0;
+    let origin = Point3 {x: 0.0, y: 0.0, z: 0.0};
+    let horizontal = Vector3 { x: viewport_width, y: 0.0, z: 0.0};
+    let vertical = Vector3 { x: 0.0, y: viewport_height, z: 0.0};
+    let distance = Vector3 { x: 0.0, y: 0.0, z: focal_length };
+    let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - distance;
+
+    Camera {
+        origin,
+        horizontal,
+        vertical,
+        lower_left_corner,
+    }
+}
+
+impl Camera {
+    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+        Ray {
+            origin: self.origin,
+            direction: self.lower_left_corner + self.horizontal*u + self.vertical*v - self.origin,
+        }
     }
 }
