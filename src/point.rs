@@ -3,6 +3,8 @@
 
 use std::ops::{Add, Sub, Mul, Div};
 
+use rand::Rng;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vector3 {
     pub x: f64,
@@ -71,6 +73,20 @@ impl Div<f64> for Vector3 {
             z: self.z / t,
         }
     }
+}
+
+pub fn random_vector_in_unit_sphere<R: Rng + ?Sized>(rng: &mut R) -> Vector3 {
+    loop {
+        let random_vec = Vector3 {
+            x: rng.gen_range(-1.0..1.0),
+            y: rng.gen_range(-1.0..1.0),
+            z: rng.gen_range(-1.0..1.0),
+        };
+        if random_vec.length_squared() < 1.0 {
+            return random_vec;
+        }
+    }
+
 }
 
 pub type Point3 = Vector3;

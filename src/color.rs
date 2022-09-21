@@ -8,6 +8,17 @@ pub struct Color {
     pub b: f64,
 }
 
+impl Color {
+    pub fn gamma_correct(&self) -> Color {
+        // correct by a gamma=2.0, which means taking it to the power of 1/2.0
+        Color {
+            r: f64::sqrt(self.r),
+            g: f64::sqrt(self.g),
+            b: f64::sqrt(self.b),
+        }
+    }
+}
+
 impl Add<Color> for Color {
     type Output = Color;
 

@@ -4,31 +4,39 @@ use std::io::{self, Write};
 use rand::Rng;
 
 use raytracer::color::Color;
-use raytracer::point::{Point3, Vector3};
+use raytracer::point::{Point3, Vector3, random_vector_in_unit_sphere};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
 
-fn ray_color(ray: &Ray, objects: &HittableList) -> Color {
-    
-    match objects.hit(ray, 0.0, f64::INFINITY) {
-        Some(hit) => {
-            let normal_as_color = Color {
-                r: hit.normal.x,
-                g: hit.normal.y,
-                b: hit.normal.z,
-            };
-            return (normal_as_color + Color {r: 1.0, g: 1.0, b: 1.0 }) * 0.5;
+fn ray_color<R: Rng + ?Sized>(ray: &Ray, objects: &HittableList, max_depth: i32, rng: &mut R) -> Color {
+    let mut cur_ray = *ray;
+    let mut cur_color = Color {r: 0.0, g: 0.0, b: 0.0 };
+    let mut color_coef = 1.0;
 
+    for _ in 0..max_depth {
+        match objects.hit(&cur_ray, 0.0001, f64::INFINITY) {
+            Some(hit) => {
+                let target = hit.point + hit.normal + random_vector_in_unit_sphere(rng);
+                cur_ray = Ray {
+                    origin: hit.point,
+                    direction: target - hit.point,
+                };
+                color_coef = color_coef * 0.5;
+            }
+            None => {
+                let unit_direction = ray.direction.unit_direction();
+                let t = 0.5 * (unit_direction.y + 1.0);
+                let start_color = Color { r: 1.0, g: 1.0, b: 1.0};
+                let end_color =  Color { r: 0.5, g: 0.7, b: 1.0};
+                cur_color =  (start_color * (1.0 - t) + end_color * t) * color_coef;
+                break;
+            }
         }
-        None => {
-            let unit_direction = ray.direction.unit_direction();
-            let t = 0.5 * (unit_direction.y + 1.0);
-            let start_color = Color { r: 1.0, g: 1.0, b: 1.0};
-            let end_color =  Color { r: 0.5, g: 0.7, b: 1.0};
-            return start_color * (1.0 - t) + end_color * t;
-        }
-    }
+    };
+    cur_color
+
+    
 }
 
 fn main() {
@@ -43,13 +51,15 @@ fn create_image() -> () {
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
     let samples_per_pixel = 100;
+    let max_depth = 50;
     let mut rng = rand::thread_rng();
+
 
     // World
     let objects = HittableList {
         objects: vec![
             Box::new(Sphere {center: Point3 {x: 0.0, y: 0.0, z: -1.0}, radius: 0.5}),
-            Box::new(Sphere {center: Point3 {x: 0.8, y: -0.3, z: -0.9}, radius: 0.2}),
+            // Box::new(Sphere {center: Point3 {x: 0.8, y: -0.3, z: -0.9}, radius: 0.2}),
             // Box::new(Torus {center: Point3 {x: -0.5, y: -0.3, z: -1.0}, a: 0.3, b: 0.1}),
             Box::new(Sphere {center: Point3 {x: 0.0, y: -100.5, z: -1.0}, radius: 100.0}),
         ]
@@ -69,9 +79,9 @@ fn create_image() -> () {
                     (i as f64 + rng.gen_range(0.0..1.0)) / (image_width - 1) as f64,
                     (j as f64 + rng.gen_range(0.0..1.0)) / (image_height - 1) as f64
                 );
-                color = color + ray_color(&ray, &objects);
+                color = color + ray_color(&ray, &objects, max_depth, &mut rng);
             }
-            color = color / (samples_per_pixel as f64);
+            color = (color / (samples_per_pixel as f64)).gamma_correct();
 
 
             println!("{color}");
