@@ -4,7 +4,8 @@ use std::io::{self, Write};
 use rand::Rng;
 
 use raytracer::color::Color;
-use raytracer::point::{Point3, Vector3, random_unit_vector};
+use raytracer::material::{LambertianMaterial, Material};
+use raytracer::point::{Point3, Vector3};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
@@ -12,17 +13,18 @@ use raytracer::ray::{Hittable, HittableList, Ray};
 fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32, rng: &mut impl Rng) -> Color {
     let mut cur_ray = *ray;
     let mut cur_color = Color {r: 0.0, g: 0.0, b: 0.0 };
-    let mut color_coef = 1.0;
+    let mut color_coef = Color {r: 1.0, g: 1.0, b: 1.0 };
 
     for _ in 0..max_depth {
         match objects.hit(&cur_ray, 0.0001, f64::INFINITY) {
             Some(hit) => {
-                let target = hit.point + hit.normal + random_unit_vector(rng);
-                cur_ray = Ray {
-                    origin: hit.point,
-                    direction: target - hit.point,
-                };
-                color_coef = color_coef * 0.5;
+                match hit.material.scatter(&cur_ray, &hit, rng) {
+                    Some((new_ray, attenuation)) => {
+                        cur_ray = new_ray;
+                        color_coef = color_coef * attenuation;
+                    }
+                    None => {break;} 
+                }
             }
             None => {
                 let unit_direction = ray.direction.unit_direction();
@@ -56,12 +58,23 @@ fn create_image() -> () {
 
 
     // World
+    let material = LambertianMaterial {
+        albedo: Color {r: 0.5, g: 0.5, b: 0.5}
+    };
     let objects = HittableList {
         objects: vec![
-            Box::new(Sphere {center: Point3 {x: 0.0, y: 0.0, z: -1.0}, radius: 0.5}),
+            Box::new(Sphere {
+                center: Point3 {x: 0.0, y: 0.0, z: -1.0},
+                radius: 0.5,
+                material: material,
+            }),
             // Box::new(Sphere {center: Point3 {x: 0.8, y: -0.3, z: -0.9}, radius: 0.2}),
             // Box::new(Torus {center: Point3 {x: -0.5, y: -0.3, z: -1.0}, a: 0.3, b: 0.1}),
-            Box::new(Sphere {center: Point3 {x: 0.0, y: -100.5, z: -1.0}, radius: 100.0}),
+            Box::new(Sphere {
+                center: Point3 {x: 0.0, y: -100.5, z: -1.0},
+                radius: 100.0,
+                material: material,
+            }),
         ]
     };
     let camera = get_camera(aspect_ratio);

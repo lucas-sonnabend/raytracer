@@ -1,9 +1,10 @@
-use crate::{point::{Point3}, ray::{Ray, HitRecord, Hittable}};
+use crate::{point::{Point3}, ray::{Ray, HitRecord, Hittable}, material::{LambertianMaterial}};
 
 pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
-} 
+    pub material: LambertianMaterial,
+}
 
 impl Sphere {
     fn build_hit_record(&self, ray: &Ray, t: f64) -> HitRecord {
@@ -17,6 +18,7 @@ impl Sphere {
         HitRecord {
             point,
             normal,
+            material: &self.material,
             t,
             front_face,
         }
@@ -52,11 +54,18 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod tests {
-    use crate::{sphere::Sphere, point::Point3, ray::{Ray, HitRecord, Hittable}};
+    use crate::{sphere::Sphere, point::Point3, ray::{Ray, HitRecord, Hittable}, color::Color, material::LambertianMaterial};
 
     #[test]
     fn test_hit_sphere_in_center() {
-        let sphere = Sphere {center: Point3 {x:1.0, y: 2.0, z: 10.0}, radius: 1.0};
+        let material = LambertianMaterial {
+            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
+        };
+        let sphere = Sphere {
+            center: Point3 {x:1.0, y: 2.0, z: 10.0},
+            radius: 1.0,
+            material: material,
+        };
         let ray = Ray {
             origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
             direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
@@ -65,6 +74,7 @@ mod tests {
         let expected = HitRecord {
             point: Point3 {x:1.0, y: 2.0, z: 9.0},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
+            material: &material,
             t: 9.0,
             front_face: true,
         };
@@ -79,7 +89,14 @@ mod tests {
 
     #[test]
     fn test_ray_missing_sphere() {
-        let sphere = Sphere {center: Point3 {x:1.0, y: 2.0, z: 10.0}, radius: 1.0};
+         let material = LambertianMaterial {
+            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
+        };
+        let sphere = Sphere {
+            center: Point3 {x:1.0, y: 2.0, z: 10.0},
+            radius: 1.0,
+            material: material,
+        };
         let ray = Ray {
             origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
             direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },

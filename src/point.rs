@@ -16,6 +16,7 @@ impl Vector3 {
     pub fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z 
     }
+
     pub fn length(&self) -> f64 {
         f64::sqrt(self.length_squared() as f64)
     }
@@ -27,6 +28,11 @@ impl Vector3 {
 
     pub fn dot_product(&self, other: &Vector3) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let eps = 1e-8;
+        return (self.x.abs() < eps) && (self.y.abs() < eps) && (self.z.abs() < eps);
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::point::{Point3, Vector3};
+use crate::{point::{Point3, Vector3}, material::{LambertianMaterial}};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Ray {
@@ -13,9 +13,10 @@ impl Ray {
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub point: Point3,
     pub normal: Vector3,
+    pub material: &'a LambertianMaterial,
     pub t: f64,
     pub front_face: bool,
 }

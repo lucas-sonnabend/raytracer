@@ -1,5 +1,5 @@
 // aka a Donut
-use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}};
+use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}, material::LambertianMaterial};
 
 use roots::find_roots_quartic;
 
@@ -14,6 +14,7 @@ pub struct Torus {
     pub center: Point3,
     pub a: f64, // aka R aka major radius
     pub b: f64, // aka S aka minor radius
+    pub material: LambertianMaterial,
 }
 
 impl Torus {
@@ -37,6 +38,7 @@ impl Torus {
         HitRecord {
             point: point + self.center,
             normal,
+            material: &self.material,
             t,
             front_face,
         }
@@ -92,13 +94,21 @@ impl Hittable for Torus {
 #[cfg(test)]
 mod tests {
     use approx::relative_eq;
-    use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}};
+    use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}, color::Color, material::LambertianMaterial};
 
     use super::Torus;
 
     #[test]
     fn test_hit_torus_in_center() {
-        let torus = Torus {center: Point3 {x:1.0, y: 2.0, z: 10.0}, a: 1.0, b: 0.1};
+        let material = LambertianMaterial {
+            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
+        };
+        let torus = Torus {
+            center: Point3 {x:1.0, y: 2.0, z: 10.0},
+            a: 1.0,
+            b: 0.1,
+            material: material,
+        };
         let ray = Ray {
             origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
             direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
@@ -107,6 +117,7 @@ mod tests {
         let expected = HitRecord {
             point: Point3 {x:1.0, y: 2.0, z: 8.9},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
+            material: &&material,
             t: 8.9,
             front_face: true,
         };
@@ -115,7 +126,15 @@ mod tests {
     
     #[test]
     fn test_hit_central_torus_in_center() {
-        let torus = Torus {center: Point3 {x:0.0, y: 0.0, z: 0.0}, a: 1.0, b: 0.1};
+        let material = LambertianMaterial {
+            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
+        };
+        let torus = Torus {
+            center: Point3 {x:0.0, y: 0.0, z: 0.0},
+            a: 1.0,
+            b: 0.1,
+            material: material,
+        };
         let ray = Ray {
             origin: Point3 {x: 0.0, y: 0.0, z: -5.0},
             direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
@@ -124,6 +143,7 @@ mod tests {
         let expected = HitRecord {
             point: Point3 {x:0.0, y: 0.0, z: -1.1},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
+            material: &&material,
             t: 3.9,
             front_face: true,
         };
@@ -132,7 +152,15 @@ mod tests {
     
     #[test]
     fn test_ray_missing_torus() {
-        let sphere = Torus {center: Point3 {x:1.0, y: 2.0, z: 10.0}, a: 1.0, b: 0.2};
+        let material = LambertianMaterial {
+            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
+        };
+        let sphere = Torus {
+            center: Point3 {x:1.0, y: 2.0, z: 10.0},
+            a: 1.0,
+            b: 0.2,
+            material: material,
+        };
         let ray = Ray {
             origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
             direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
