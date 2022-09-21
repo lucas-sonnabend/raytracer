@@ -4,12 +4,12 @@ use std::io::{self, Write};
 use rand::Rng;
 
 use raytracer::color::Color;
-use raytracer::point::{Point3, Vector3, random_vector_in_unit_sphere};
+use raytracer::point::{Point3, Vector3, random_unit_vector};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
 
-fn ray_color<R: Rng + ?Sized>(ray: &Ray, objects: &HittableList, max_depth: i32, rng: &mut R) -> Color {
+fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32, rng: &mut impl Rng) -> Color {
     let mut cur_ray = *ray;
     let mut cur_color = Color {r: 0.0, g: 0.0, b: 0.0 };
     let mut color_coef = 1.0;
@@ -17,7 +17,7 @@ fn ray_color<R: Rng + ?Sized>(ray: &Ray, objects: &HittableList, max_depth: i32,
     for _ in 0..max_depth {
         match objects.hit(&cur_ray, 0.0001, f64::INFINITY) {
             Some(hit) => {
-                let target = hit.point + hit.normal + random_vector_in_unit_sphere(rng);
+                let target = hit.point + hit.normal + random_unit_vector(rng);
                 cur_ray = Ray {
                     origin: hit.point,
                     direction: target - hit.point,
