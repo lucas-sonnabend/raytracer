@@ -1,6 +1,8 @@
 pub mod point;
 
 use std::io::{self, Write};
+use rand::Rng;
+
 use raytracer::color::Color;
 use raytracer::point::{Point3, Vector3};
 use raytracer::sphere::Sphere;
@@ -40,6 +42,8 @@ fn create_image() -> () {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
+    let samples_per_pixel = 100;
+    let mut rng = rand::thread_rng();
 
     // World
     let objects = HittableList {
@@ -52,17 +56,23 @@ fn create_image() -> () {
     };
     let camera = get_camera(aspect_ratio);
 
+
     println!("P3\n{image_width} {image_height}\n255");
 
     for j in (0..image_height).rev() {
         eprint!("\r Scanlines remaining {j}");
         io::stderr().flush().unwrap();
         for i in 0..image_width {
-            let ray = camera.get_ray(
-                i as f64 / (image_width - 1) as f64,
-                j as f64 / (image_height - 1) as f64
-            );
-            let color = ray_color(&ray, &objects);
+            let mut color = Color {r: 0.0, g: 0.0, b: 0.0};
+            for _ in 0..samples_per_pixel {
+                let ray = camera.get_ray(
+                    (i as f64 + rng.gen_range(0.0..1.0)) / (image_width - 1) as f64,
+                    (j as f64 + rng.gen_range(0.0..1.0)) / (image_height - 1) as f64
+                );
+                color = color + ray_color(&ray, &objects);
+            }
+            color = color / (samples_per_pixel as f64);
+
 
             println!("{color}");
         } 
