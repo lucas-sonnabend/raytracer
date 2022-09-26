@@ -34,7 +34,12 @@ impl Vector3 {
         let eps = 1e-8;
         return (self.x.abs() < eps) && (self.y.abs() < eps) && (self.z.abs() < eps);
     }
+
+    pub fn reflect(&self, n: &Vector3) -> Vector3 {
+        return *self - (*n * self.dot_product(n) * 2.0);
+    }
 }
+
 
 impl Add<Vector3> for Vector3 {
     type Output = Vector3;
@@ -100,36 +105,49 @@ pub fn random_unit_vector(rng: &mut impl Rng) -> Vector3 {
 
 pub type Point3 = Vector3;
 
-#[test]
-fn test_adding_to_positive_points() {
-    let point1 = Vector3 {x:1.0, y:2.0, z:3.0};
-    let point2 = Vector3 {x: 10.0, y:20.0, z:30.0};
-    let result = point1 + point2;
-    assert_eq!(result, Vector3 {x:11.0, y: 22.0, z: 33.0});
-}
+#[cfg(test)]
+mod tests {
+    use crate::point::Vector3;
 
-#[test]
-fn test_length_squared() {
-    let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
-    assert_eq!(point1.length_squared(), 50.0);
-}
+    #[test]
+    fn test_adding_to_positive_points() {
+        let point1 = Vector3 {x:1.0, y:2.0, z:3.0};
+        let point2 = Vector3 {x: 10.0, y:20.0, z:30.0};
+        let result = point1 + point2;
+        assert_eq!(result, Vector3 {x:11.0, y: 22.0, z: 33.0});
+    }
+    
+    #[test]
+    fn test_length_squared() {
+        let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
+        assert_eq!(point1.length_squared(), 50.0);
+    }
+    
+    #[test]
+    fn test_length() {
+        let point1 = Vector3 {x:3.0, y:4.0, z:12.0};
+        assert_eq!(point1.length(), 13.0);
+    }
+    
+    #[test]
+    fn test_multiply_by_scalar() {
+        let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
+        let expected = Vector3 {x:6.0, y:8.0, z:10.0};
+        assert_eq!(point1 * 2.0, expected);
+    }
+    
+    #[test]
+    fn test_dot_product() {
+        let point1 = Vector3 {x:2.0, y:3.0, z:5.0};
+        let point2 = Vector3 {x:100.0, y:10.0, z:1.0};
+        assert_eq!(point1.dot_product(&point2), 235.0);
+    }
 
-#[test]
-fn test_length() {
-    let point1 = Vector3 {x:3.0, y:4.0, z:12.0};
-    assert_eq!(point1.length(), 13.0);
-}
-
-#[test]
-fn test_multiply_by_scalar() {
-    let point1 = Vector3 {x:3.0, y:4.0, z:5.0};
-    let expected = Vector3 {x:6.0, y:8.0, z:10.0};
-    assert_eq!(point1 * 2.0, expected);
-}
-
-#[test]
-fn test_dot_product() {
-    let point1 = Vector3 {x:2.0, y:3.0, z:5.0};
-    let point2 = Vector3 {x:100.0, y:10.0, z:1.0};
-    assert_eq!(point1.dot_product(&point2), 235.0);
+    #[test]
+    fn test_reflect() {
+        let vector = Vector3 {x: 1.0, y: -1.0, z: 1.0};
+        let norm = Vector3 {x: 0.0, y: 1.0, z: 0.0};
+        let expected = Vector3 {x: 1.0, y: 1.0, z: 1.0};
+        assert_eq!(vector.reflect(&norm), expected);
+    }
 }

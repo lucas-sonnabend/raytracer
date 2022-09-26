@@ -18,6 +18,7 @@ http://cosinekitty.com/raytrace/
 
 # things to do
 
-- refactor the tests into their own files/structure
+- figure out a way to abstract the scatter/material part better. Ideas:
+  - instead of a material pointer, have a function pointer to scatter?
 
 - make the Torus class work (it looks like it is working, but it spews out way to many debug logs)

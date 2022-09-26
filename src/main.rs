@@ -10,7 +10,7 @@ use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
 
-fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32, rng: &mut impl Rng) -> Color {
+fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32) -> Color {
     let mut cur_ray = *ray;
     let mut cur_color = Color {r: 0.0, g: 0.0, b: 0.0 };
     let mut color_coef = Color {r: 1.0, g: 1.0, b: 1.0 };
@@ -18,12 +18,12 @@ fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32, rng: &mut impl R
     for _ in 0..max_depth {
         match objects.hit(&cur_ray, 0.0001, f64::INFINITY) {
             Some(hit) => {
-                match hit.material.scatter(&cur_ray, &hit, rng) {
+                match hit.material.scatter(&cur_ray, &hit) {
                     Some((new_ray, attenuation)) => {
                         cur_ray = new_ray;
                         color_coef = color_coef * attenuation;
                     }
-                    None => {break;} 
+                    None => {break;}
                 }
             }
             None => {
@@ -92,7 +92,7 @@ fn create_image() -> () {
                     (i as f64 + rng.gen_range(0.0..1.0)) / (image_width - 1) as f64,
                     (j as f64 + rng.gen_range(0.0..1.0)) / (image_height - 1) as f64
                 );
-                color = color + ray_color(&ray, &objects, max_depth, &mut rng);
+                color = color + ray_color(&ray, &objects, max_depth);
             }
             color = (color / (samples_per_pixel as f64)).gamma_correct();
 
