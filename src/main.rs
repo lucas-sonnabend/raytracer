@@ -4,7 +4,7 @@ use std::io::{self, Write};
 use rand::Rng;
 
 use raytracer::color::Color;
-use raytracer::material::{LambertianMaterial, Material};
+use raytracer::material::{LambertianMaterial, Metal};
 use raytracer::point::{Point3, Vector3};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
@@ -17,8 +17,8 @@ fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32) -> Color {
 
     for _ in 0..max_depth {
         match objects.hit(&cur_ray, 0.0001, f64::INFINITY) {
-            Some(hit) => {
-                match hit.material.scatter(&cur_ray, &hit) {
+            Some((hit, material)) => {
+                match material.scatter(&cur_ray, &hit) {
                     Some((new_ray, attenuation)) => {
                         cur_ray = new_ray;
                         color_coef = color_coef * attenuation;
@@ -58,22 +58,40 @@ fn create_image() -> () {
 
 
     // World
-    let material = LambertianMaterial {
-        albedo: Color {r: 0.5, g: 0.5, b: 0.5}
-    };
+    let ground_material = Box::new(LambertianMaterial {
+        albedo: Color {r: 0.8, g: 0.8, b: 0.0}
+    });
+    let material_center = Box::new(LambertianMaterial {
+        albedo: Color {r: 0.7, g: 0.3, b: 0.3}
+    });
+    let material_left = Box::new(Metal {
+        albedo: Color {r: 0.8, g: 0.8, b: 0.8}
+    });
+    let material_right = Box::new(Metal {
+        albedo: Color {r: 0.8, g: 0.6, b: 0.2}
+    });
+
     let objects = HittableList {
         objects: vec![
             Box::new(Sphere {
-                center: Point3 {x: 0.0, y: 0.0, z: -1.0},
-                radius: 0.5,
-                material: material,
-            }),
-            // Box::new(Sphere {center: Point3 {x: 0.8, y: -0.3, z: -0.9}, radius: 0.2}),
-            // Box::new(Torus {center: Point3 {x: -0.5, y: -0.3, z: -1.0}, a: 0.3, b: 0.1}),
-            Box::new(Sphere {
                 center: Point3 {x: 0.0, y: -100.5, z: -1.0},
                 radius: 100.0,
-                material: material,
+                material: ground_material,
+            }),
+            Box::new(Sphere {
+                center: Point3 {x: 0.0, y: 0.0, z: -1.0},
+                radius: 0.5,
+                material: material_center,
+            }),
+            Box::new(Sphere {
+                center: Point3 {x: -1.0, y: 0.0, z: -1.0},
+                radius: 0.5,
+                material: material_left,
+            }),
+            Box::new(Sphere {
+                center: Point3 {x: 1.0, y: 0.0, z: -1.0},
+                radius: 0.5,
+                material: material_right,
             }),
         ]
     };

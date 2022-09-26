@@ -1,12 +1,24 @@
+use std::fmt;
+
 use crate::{ray::{HitRecord, Ray}, color::Color, point::{random_unit_vector}};
 
-pub trait Material {
+pub trait Material: fmt::Debug{
     fn scatter(&self, ray_in: &Ray, hit: &HitRecord) -> Option<(Ray, Color)>;
 }
+
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct LambertianMaterial {
     pub albedo: Color,
+}
+
+impl LambertianMaterial {
+    pub fn new(albedo: Color) -> Self {
+        Self {albedo}
+    }
+    pub fn default() -> Self {
+        Self {albedo: Color {r: 0.0, g: 0.0, b: 0.0}}
+    }
 }
 
 impl Material for LambertianMaterial {

@@ -1,4 +1,4 @@
-use crate::{point::{Point3, Vector3}, material::{LambertianMaterial}};
+use crate::{point::{Point3, Vector3}, material::{Material}};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Ray {
@@ -12,17 +12,22 @@ impl Ray {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub struct HitRecord<'a> {
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct HitRecord {
     pub point: Point3,
     pub normal: Vector3,
-    pub material: &'a LambertianMaterial,
     pub t: f64,
-    pub front_face: bool,
+}
+
+
+impl HitRecord {
+    pub fn new(point: Point3, normal: Vector3, t: f64) -> Self {
+        return Self {point, normal, t};
+    }
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<(HitRecord, &Box<dyn Material>)>;
 }
 
 pub struct HittableList {
@@ -34,14 +39,14 @@ pub fn new_hittable_list () -> HittableList{
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<(HitRecord, &Box<dyn Material>)> {
         let mut closest_so_far = t_max;
         let mut hit_record = None;
         for object in &self.objects {
             match object.hit(ray, t_min, closest_so_far) {
-                Some(hit) => {
+                Some((hit, material)) => {
                     closest_so_far = hit.t;
-                    hit_record = Some(hit);
+                    hit_record = Some((hit, material));
                 }
                 None => ()
             }

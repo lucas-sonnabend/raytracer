@@ -1,5 +1,5 @@
 // aka a Donut
-use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}, material::LambertianMaterial};
+use crate::{point::{Point3, Vector3}, ray::{Ray, HitRecord, Hittable}, material::Material};
 
 use roots::find_roots_quartic;
 
@@ -14,11 +14,11 @@ pub struct Torus {
     pub center: Point3,
     pub a: f64, // aka R aka major radius
     pub b: f64, // aka S aka minor radius
-    pub material: LambertianMaterial,
+    pub material: Box<dyn Material>,
 }
 
 impl Torus {
-    fn build_hit_record(&self, origin: Point3, direction: Vector3, t: f64) -> HitRecord {
+    fn build_hit_record(&self, origin: Point3, direction: Vector3, t: f64) -> Option<(HitRecord, &Box<dyn Material>)> {
         let point = origin + direction * t;
 
         let g = 1.0 - (self.a / f64::sqrt(point.x * point.x + point.y * point.y));
@@ -35,18 +35,17 @@ impl Torus {
             true => outward_normal,
             false => outward_normal * (-1.0),
         };
-        HitRecord {
+        let hit = HitRecord {
             point: point + self.center,
             normal,
-            material: &self.material,
             t,
-            front_face,
-        }
+        };
+        Some((hit, &self.material))
     }
 }
 
 impl Hittable for Torus {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<(HitRecord, &Box<dyn Material>)> {
         let vantage = ray.origin - self.center;
         let direction = ray.direction.unit_direction();
     
@@ -78,10 +77,10 @@ impl Hittable for Torus {
         for root in roots_as_vector {
             if root > t_min && root < t_max {
                 match closest {
-                    None => {closest =  Some(self.build_hit_record(vantage, direction, root)) }
+                    None => {closest =  self.build_hit_record(vantage, direction, root) }
                     Some(closest_so_far) => {
-                        if root < closest_so_far.t {
-                            closest = Some(self.build_hit_record(vantage, direction, root))
+                        if root < closest_so_far.0.t {
+                            closest = self.build_hit_record(vantage, direction, root)
                         }
                     }
                 }
@@ -107,21 +106,19 @@ mod tests {
             center: Point3 {x:1.0, y: 2.0, z: 10.0},
             a: 1.0,
             b: 0.1,
-            material: material,
+            material: Box::new(material),
         };
         let ray = Ray {
             origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
             direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
         };
-        let hit = torus.hit(&ray, 0.0, 100.0);
+        let (hit, _material) = torus.hit(&ray, 0.0, 100.0).unwrap();
         let expected = HitRecord {
             point: Point3 {x:1.0, y: 2.0, z: 8.9},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
-            material: &&material,
             t: 8.9,
-            front_face: true,
         };
-        assert_almost_equal(hit, Some(expected));
+        assert_almost_equal(hit, expected);
     }
     
     #[test]
@@ -133,21 +130,19 @@ mod tests {
             center: Point3 {x:0.0, y: 0.0, z: 0.0},
             a: 1.0,
             b: 0.1,
-            material: material,
+            material: Box::new(material),
         };
         let ray = Ray {
             origin: Point3 {x: 0.0, y: 0.0, z: -5.0},
             direction: crate::point::Vector3 { x: 0.0, y: 0.0, z: 1.0 },
         };
-        let hit = torus.hit(&ray, -100.0, 100.0);
+        let (hit, _) = torus.hit(&ray, -100.0, 100.0).unwrap();
         let expected = HitRecord {
             point: Point3 {x:0.0, y: 0.0, z: -1.1},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
-            material: &&material,
             t: 3.9,
-            front_face: true,
         };
-        assert_almost_equal(hit, Some(expected));
+        assert_almost_equal(hit, expected);
     }
     
     #[test]
@@ -159,27 +154,20 @@ mod tests {
             center: Point3 {x:1.0, y: 2.0, z: 10.0},
             a: 1.0,
             b: 0.2,
-            material: material,
+            material: Box::new(material),
         };
         let ray = Ray {
             origin: Point3 {x: 1.0, y: 2.0, z: 0.0},
             direction: crate::point::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
         };
         let hit = sphere.hit(&ray, 0.0, 100.0);
-        assert_almost_equal(hit, None);
+        assert!(hit.is_none());
     }
     
-    fn assert_almost_equal(val: Option<HitRecord>, other: Option<HitRecord>) {
-        let is_almost_equal = match (val, other) {
-            (None, None) => true,
-            (Some(v1), Some(v2)) => {
-                vector_relative_eq(v1.point, v2.point) &&
-                vector_relative_eq(v1.normal, v2.normal) &&
-                relative_eq!(v1.t, v2.t, epsilon = 1.0e-6)
-            },
-            (None, Some(_)) => false,
-            (Some(_), None) => false, 
-        };
+    fn assert_almost_equal(val: HitRecord, other: HitRecord) {
+        let is_almost_equal = vector_relative_eq(val.point, other.point) &&
+            vector_relative_eq(val.normal, other.normal) &&
+            relative_eq!(val.t, other.t, epsilon = 1.0e-6);
         assert!(
             is_almost_equal,
             "actual hit {:?} was different from expected hit {:?}",
