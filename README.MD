@@ -19,6 +19,7 @@ http://cosinekitty.com/raytrace/
 # things to do
 
 - figure out a way to abstract the scatter/material part better. Ideas:
-  - instead of a material pointer, have a function pointer to scatter?
+  - instead of the tuple of HitRecord and Material,
+    should we add a function pointer to represent the scatter function?
 
 - make the Torus class work (it looks like it is working, but it spews out way to many debug logs)

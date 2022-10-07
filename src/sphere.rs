@@ -56,9 +56,9 @@ mod tests {
 
     #[test]
     fn test_hit_sphere_in_center() {
-        let material = Box::new(LambertianMaterial {
-            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
-        });
+        let material = Box::new(LambertianMaterial::new(
+            Color {r: 127.0, g: 127.0, b: 127.0}
+        ));
         let sphere = Sphere {
             center: Point3 {x:1.0, y: 2.0, z: 10.0},
             radius: 1.0,
@@ -85,9 +85,9 @@ mod tests {
 
     #[test]
     fn test_ray_missing_sphere() {
-         let material = Box::new(LambertianMaterial {
-            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
-        });
+        let material = Box::new(LambertianMaterial::new(
+            Color {r: 127.0, g: 127.0, b: 127.0}
+        ));
         let sphere = Sphere {
             center: Point3 {x:1.0, y: 2.0, z: 10.0},
             radius: 1.0,

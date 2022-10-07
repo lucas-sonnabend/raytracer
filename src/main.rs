@@ -58,18 +58,18 @@ fn create_image() -> () {
 
 
     // World
-    let ground_material = Box::new(LambertianMaterial {
-        albedo: Color {r: 0.8, g: 0.8, b: 0.0}
-    });
-    let material_center = Box::new(LambertianMaterial {
-        albedo: Color {r: 0.7, g: 0.3, b: 0.3}
-    });
-    let material_left = Box::new(Metal {
-        albedo: Color {r: 0.8, g: 0.8, b: 0.8}
-    });
-    let material_right = Box::new(Metal {
-        albedo: Color {r: 0.8, g: 0.6, b: 0.2}
-    });
+    let ground_material = Box::new(LambertianMaterial::new(
+        Color {r: 0.8, g: 0.8, b: 0.0}
+    ));
+    let material_center = Box::new(LambertianMaterial::new(
+        Color {r: 0.7, g: 0.3, b: 0.3}
+    ));
+    let material_left = Box::new(Metal::new(
+        Color {r: 0.8, g: 0.8, b: 0.8}, 0.3
+    ));
+    let material_right = Box::new(Metal::new(
+        Color {r: 0.8, g: 0.6, b: 0.2}, 1.0,
+    ));
 
     let objects = HittableList {
         objects: vec![

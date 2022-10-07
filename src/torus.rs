@@ -99,9 +99,9 @@ mod tests {
 
     #[test]
     fn test_hit_torus_in_center() {
-        let material = LambertianMaterial {
-            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
-        };
+        let material = LambertianMaterial::new(
+            Color {r: 127.0, g: 127.0, b: 127.0}
+        );
         let torus = Torus {
             center: Point3 {x:1.0, y: 2.0, z: 10.0},
             a: 1.0,
@@ -123,9 +123,9 @@ mod tests {
     
     #[test]
     fn test_hit_central_torus_in_center() {
-        let material = LambertianMaterial {
-            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
-        };
+        let material = LambertianMaterial::new(
+            Color {r: 127.0, g: 127.0, b: 127.0}
+        );
         let torus = Torus {
             center: Point3 {x:0.0, y: 0.0, z: 0.0},
             a: 1.0,
@@ -147,9 +147,9 @@ mod tests {
     
     #[test]
     fn test_ray_missing_torus() {
-        let material = LambertianMaterial {
-            albedo: Color {r: 127.0, g: 127.0, b: 127.0}
-        };
+        let material = LambertianMaterial::new(
+            Color {r: 127.0, g: 127.0, b: 127.0}
+        );
         let sphere = Torus {
             center: Point3 {x:1.0, y: 2.0, z: 10.0},
             a: 1.0,
