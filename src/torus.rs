@@ -39,6 +39,7 @@ impl Torus {
             point: point + self.center,
             normal,
             t,
+            front_face,
         };
         Some((hit, &self.material))
     }
@@ -117,6 +118,7 @@ mod tests {
             point: Point3 {x:1.0, y: 2.0, z: 8.9},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
             t: 8.9,
+            front_face: true,
         };
         assert_almost_equal(hit, expected);
     }
@@ -141,6 +143,7 @@ mod tests {
             point: Point3 {x:0.0, y: 0.0, z: -1.1},
             normal: Point3 {x: 0.0, y: 0.0, z: -1.0},
             t: 3.9,
+            front_face: true,
         };
         assert_almost_equal(hit, expected);
     }

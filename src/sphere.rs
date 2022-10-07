@@ -19,6 +19,7 @@ impl Sphere {
             point,
             normal,
             t,
+            front_face,
         }
     }
 }
@@ -72,7 +73,8 @@ mod tests {
         let expected = HitRecord::new(
             Point3 {x:1.0, y: 2.0, z: 9.0},
             Point3 {x: 0.0, y: 0.0, z: -1.0},
-            9.0
+            9.0,
+            true,
         );
         assert_eq!(
             hit,

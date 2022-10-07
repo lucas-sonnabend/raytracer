@@ -17,12 +17,13 @@ pub struct HitRecord {
     pub point: Point3,
     pub normal: Vector3,
     pub t: f64,
+    pub front_face: bool,
 }
 
 
 impl HitRecord {
-    pub fn new(point: Point3, normal: Vector3, t: f64) -> Self {
-        return Self {point, normal, t};
+    pub fn new(point: Point3, normal: Vector3, t: f64, front_face: bool) -> Self {
+        return Self {point, normal, t, front_face};
     }
 }
 

@@ -4,7 +4,7 @@ use std::io::{self, Write};
 use rand::Rng;
 
 use raytracer::color::Color;
-use raytracer::material::{LambertianMaterial, Metal};
+use raytracer::material::{LambertianMaterial, Metal, Dialectric};
 use raytracer::point::{Point3, Vector3};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
@@ -61,9 +61,7 @@ fn create_image() -> () {
     let ground_material = Box::new(LambertianMaterial::new(
         Color {r: 0.8, g: 0.8, b: 0.0}
     ));
-    let material_center = Box::new(LambertianMaterial::new(
-        Color {r: 0.7, g: 0.3, b: 0.3}
-    ));
+    let material_center = Box::new(Dialectric::new(1.5));
     let material_left = Box::new(Metal::new(
         Color {r: 0.8, g: 0.8, b: 0.8}, 0.3
     ));
