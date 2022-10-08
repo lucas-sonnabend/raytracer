@@ -3,9 +3,10 @@ pub mod point;
 use std::io::{self, Write};
 use rand::Rng;
 
+use raytracer::camera::Camera;
 use raytracer::color::Color;
 use raytracer::material::{LambertianMaterial, Metal, Dialectric};
-use raytracer::point::{Point3, Vector3};
+use raytracer::point::{Point3};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
@@ -98,7 +99,7 @@ fn create_image() -> () {
             }),
         ]
     };
-    let camera = get_camera(aspect_ratio);
+    let camera = Camera::new(90.0, aspect_ratio);
 
 
     println!("P3\n{image_width} {image_height}\n255");
@@ -120,39 +121,5 @@ fn create_image() -> () {
 
             println!("{color}");
         } 
-    }
-}
-
-struct Camera {
-    origin: Point3,
-    horizontal: Vector3,
-    vertical: Vector3,
-    lower_left_corner: Vector3,
-}
-
-fn get_camera(aspect_ratio: f64) -> Camera {
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-    let origin = Point3 {x: 0.0, y: 0.0, z: 0.0};
-    let horizontal = Vector3 { x: viewport_width, y: 0.0, z: 0.0};
-    let vertical = Vector3 { x: 0.0, y: viewport_height, z: 0.0};
-    let distance = Vector3 { x: 0.0, y: 0.0, z: focal_length };
-    let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - distance;
-
-    Camera {
-        origin,
-        horizontal,
-        vertical,
-        lower_left_corner,
-    }
-}
-
-impl Camera {
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
-        Ray {
-            origin: self.origin,
-            direction: self.lower_left_corner + self.horizontal*u + self.vertical*v - self.origin,
-        }
     }
 }
