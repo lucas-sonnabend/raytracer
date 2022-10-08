@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{ray::{HitRecord, Ray}, color::Color, point::{random_unit_vector, random_vector_in_unit_sphere, Vector3}};
+use crate::{ray::{HitRecord, Ray}, color::Color, point::{random_unit_vector, random_vector_in_unit_sphere}};
 
 pub trait Material: fmt::Debug{
     fn scatter(&self, ray_in: &Ray, hit: &HitRecord) -> Option<(Ray, Color)>;
@@ -82,42 +82,16 @@ impl Material for Dialectric {
             false => self.index_of_refraction,
         };
         let unit_direction = ray_in.direction.unit_direction();
-        let refracted = refract(&unit_direction, &hit.normal, refraction_ratio);
+        let cos_theta = f64::min((unit_direction * -1.0).dot_product(&hit.normal), 1.0);
+        let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
 
-        let scattered = Ray {origin: hit.point, direction: refracted};
+        let direction = match cannot_refract {
+            true => unit_direction.reflect(&hit.normal),
+            false => unit_direction.refract(&hit.normal, refraction_ratio),
+        };
+
+        let scattered = Ray {origin: hit.point, direction};
         return Some((scattered, attenuation));
-    }
-}
-
-fn refract(uv: &Vector3, n: &Vector3, etai_over_etat: f64) -> Vector3 {
-    let minus_uv = *uv * -1.0;
-    let cos_theta = f64::min(minus_uv.dot_product(n), 1.0);
-    let r_out_perp = (*uv + *n * cos_theta ) * etai_over_etat;
-    let r_out_parallel = *n * (- f64::sqrt(f64::abs(1.0 - r_out_perp.length_squared())));
-    return r_out_perp + r_out_parallel;
-}
-
-#[cfg(test)]
-mod tests {
-    use approx::relative_eq;
-
-    use crate::{point::Vector3, material::refract};
-
-    #[test]
-    fn test_refract_passes_straight_throught_same_material() {
-        let incoming = Vector3::new(1.0, 1.0, 0.0).unit_direction();
-        let normal = Vector3::new(0.0, 0.0, 1.0);
-        let refraction_ratio = 1.0;
-        let result = refract(&incoming, &normal, refraction_ratio);
-        let expected = Vector3::new(1.0, 1.0, 0.0).unit_direction();
-        assert!(
-            relative_eq!(result.x, expected.x, epsilon = 1.0e-6)
-        );
-        assert!(
-            relative_eq!(result.y, expected.y, epsilon = 1.0e-6)
-        );
-        assert!(
-            relative_eq!(result.z, expected.z, epsilon = 1.0e-6)
-        );
     }
 }

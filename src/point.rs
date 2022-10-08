@@ -41,6 +41,15 @@ impl Vector3 {
     pub fn reflect(&self, n: &Vector3) -> Vector3 {
         return *self - (*n * self.dot_product(n) * 2.0);
     }
+
+    pub fn refract(&self, n: &Vector3, etai_over_etat: f64) -> Vector3 {
+        let minus_self = *self * -1.0;
+        let cos_theta = f64::min(minus_self.dot_product(n), 1.0);
+        let r_out_perp = (*self + *n * cos_theta ) * etai_over_etat;
+        let r_out_parallel = *n * (- f64::sqrt(f64::abs(1.0 - r_out_perp.length_squared())));
+        return r_out_perp + r_out_parallel;
+    }
+
 }
 
 
@@ -112,6 +121,7 @@ pub type Point3 = Vector3;
 #[cfg(test)]
 mod tests {
     use crate::point::Vector3;
+    use approx::relative_eq;
 
     #[test]
     fn test_adding_to_positive_points() {
@@ -153,5 +163,23 @@ mod tests {
         let norm = Vector3 {x: 0.0, y: 1.0, z: 0.0};
         let expected = Vector3 {x: 1.0, y: 1.0, z: 1.0};
         assert_eq!(vector.reflect(&norm), expected);
+    }
+
+    #[test]
+    fn test_refract_passes_straight_throught_same_material() {
+        let incoming = Vector3::new(1.0, 1.0, 0.0).unit_direction();
+        let normal = Vector3::new(0.0, 0.0, 1.0);
+        let refraction_ratio = 1.0;
+        let result = incoming.refract(&normal, refraction_ratio);
+        let expected = Vector3::new(1.0, 1.0, 0.0).unit_direction();
+        assert!(
+            relative_eq!(result.x, expected.x, epsilon = 1.0e-6)
+        );
+        assert!(
+            relative_eq!(result.y, expected.y, epsilon = 1.0e-6)
+        );
+        assert!(
+            relative_eq!(result.z, expected.z, epsilon = 1.0e-6)
+        );
     }
 }
