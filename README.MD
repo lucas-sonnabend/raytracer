@@ -23,3 +23,9 @@ http://cosinekitty.com/raytrace/
     should we add a function pointer to represent the scatter function?
 
 - make the Torus class work (it looks like it is working, but it spews out way to many debug logs)
+
+- how can this be parallelised? the "final render" is quite intensive ...
+- related question: how can I debug this performance?
+
+- use command line args to switch between the small and the big scene
+

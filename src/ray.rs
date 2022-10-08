@@ -39,6 +39,15 @@ pub fn new_hittable_list () -> HittableList{
     HittableList { objects: vec![] }
 }
 
+impl HittableList {
+    pub fn new() -> Self {
+        HittableList { objects: vec![] }
+    }
+    pub fn add(&mut self, object: Box<dyn Hittable>) {
+        self.objects.push(object);
+    }
+}
+
 impl Hittable for HittableList {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<(HitRecord, &Box<dyn Material>)> {
         let mut closest_so_far = t_max;

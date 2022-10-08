@@ -2,10 +2,12 @@ pub mod point;
 
 use std::io::{self, Write};
 use rand::Rng;
+use rand::distributions::WeightedError;
+use rand::seq::SliceRandom;
 
 use raytracer::camera::Camera;
 use raytracer::color::Color;
-use raytracer::material::{LambertianMaterial, Metal, Dialectric};
+use raytracer::material::{LambertianMaterial, Metal, Dialectric, Material};
 use raytracer::point::{Point3};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
@@ -47,18 +49,69 @@ fn main() {
 }
 
 
-
-fn create_image() -> () {
-    // Image
-    let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400;
-    let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 100;
-    let max_depth = 50;
+fn create_random_world() -> Result<HittableList, WeightedError> {
+    let mut objects = HittableList::new();
     let mut rng = rand::thread_rng();
+    // TODO: add lots of spheres randomly
+    let ground_material = LambertianMaterial::new(
+        Color {r: 0.5, g: 0.5, b: 0.5}
+    );
+    let ground = Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Box::new(ground_material),
+    );
+    objects.add(Box::new(ground));
 
+    let material_choices = [
+        ("diffuse", 16), ("metal", 3), ("glass", 1)
+    ];
 
-    // World
+    for a in -5..5 {
+        for b in -5..5 {
+            let center = Point3::new(
+                a as f64 + 0.9 * rng.gen_range(0.0..1.0),
+                0.2,
+                b as f64 + 0.9 * rng.gen_range(0.0..1.0),
+            );
+            let point = Point3::new(4.0, 0.2, 0.0);
+
+            if (center - point).length() > 0.9 {
+                let material_choice = material_choices.choose_weighted(&mut rng, |item| item.1);
+                let material = match material_choice {
+                    Ok(("diffuse", _)) => {
+                        let albedo = Color::random() * Color::random();
+                        Box::new(LambertianMaterial::new(albedo)) as Box<dyn Material>
+                    },
+                    Ok(("metal", _)) => {
+                        let albedo = Color::random_with_limits(0.5, 1.0);
+                        let fuzz = rng.gen_range(0.0..0.5);
+                        Box::new(Metal::new(albedo, fuzz)) as Box<dyn Material>
+                    },
+                    Ok(("glass", _)) => {
+                        Box::new(Dialectric::new(1.5)) as Box<dyn Material>
+                    },
+                    Ok((_mat, _)) => {panic!("unknown material")},
+                    Err(e) => return Err(e),
+                };
+                objects.add(Box::new(Sphere::new(center, 0.2, material)));
+            }
+
+        }
+    }
+    let mat1 = Box::new(Dialectric::new(1.5));
+    objects.add(Box::new(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, mat1)));
+
+    let mat2 = Box::new(LambertianMaterial::new(Color::new(0.4, 0.2, 0.1)));
+    objects.add(Box::new(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, mat2)));
+
+    let mat3 = Box::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    objects.add(Box::new(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, mat3)));
+
+    return Ok(objects);
+}
+
+pub fn create_simple_world() -> HittableList {
     let ground_material = LambertianMaterial::new(
         Color {r: 0.8, g: 0.8, b: 0.0}
     );
@@ -99,15 +152,28 @@ fn create_image() -> () {
             }),
         ]
     };
+    return objects;
+}
+
+fn create_image() -> Result<(), WeightedError> {
+    let aspect_ratio = 4.0 / 3.0;
+    let image_width = 800;
+    let image_height = (image_width as f64 / aspect_ratio) as i32;
+    let samples_per_pixel = 100;
+    let max_depth = 50;
+    let mut rng = rand::thread_rng();
+
+
+    let objects = create_random_world()?;
+    
     let camera = Camera::new(
-        Point3::new(-2.0, 2.0, 1.0),
-        Point3::new(0.0, 0.0, -1.0),
+        Point3::new(13.0, 2.0, 3.0),
+        Point3::new(0.0, 0.0, 0.0),
         Point3::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
-        0.2,
+        0.1,
     );
-
 
     println!("P3\n{image_width} {image_height}\n255");
 
@@ -128,5 +194,6 @@ fn create_image() -> () {
 
             println!("{color}");
         } 
-    }
+    };
+    return Ok(());
 }

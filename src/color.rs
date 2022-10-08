@@ -1,6 +1,8 @@
 use std::fmt;
 use std::ops::{Add, Mul, Div};
 
+use rand::Rng;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Color {
     pub r: f64,
@@ -9,7 +11,24 @@ pub struct Color {
 }
 
 impl Color {
-    pub fn gamma_correct(&self) -> Color {
+    pub fn new(r: f64, g: f64, b: f64) -> Self {
+        Color {r, g, b}
+    }
+
+    pub fn random() -> Self {
+        Self::random_with_limits(0.0, 1.0)
+    }
+
+    pub fn random_with_limits(min: f64, max: f64) -> Self {
+        let mut rng = rand::thread_rng();
+        Color {
+            r: rng.gen_range(min..max),
+            g: rng.gen_range(min..max),
+            b: rng.gen_range(min..max),
+        }
+    }
+
+    pub fn gamma_correct(&self) -> Self {
         // correct by a gamma=2.0, which means taking it to the power of 1/2.0
         Color {
             r: f64::sqrt(self.r),
