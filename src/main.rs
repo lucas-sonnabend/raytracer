@@ -105,6 +105,7 @@ fn create_image() -> () {
         Point3::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
+        0.2,
     );
 
 

@@ -98,22 +98,22 @@ impl Mul<f64> for Vector3 {
 impl Div<f64> for Vector3 {
     type Output = Vector3;
     fn div(self, t: f64) -> Vector3 {
-        Vector3 {
-            x: self.x / t,
-            y: self.y / t,
-            z: self.z / t,
-        }
+        Vector3::new(
+            self.x / t,
+            self.y / t,
+            self.z / t,
+        )
     }
 }
 
 pub fn random_vector_in_unit_sphere() -> Vector3 {
     let mut rng = rand::thread_rng();
     loop {
-        let random_vec = Vector3 {
-            x: rng.gen_range(-1.0..1.0),
-            y: rng.gen_range(-1.0..1.0),
-            z: rng.gen_range(-1.0..1.0),
-        };
+        let random_vec = Vector3::new(
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+        );
         if random_vec.length_squared() < 1.0 {
             return random_vec;
         }
@@ -122,6 +122,20 @@ pub fn random_vector_in_unit_sphere() -> Vector3 {
 
 pub fn random_unit_vector() -> Vector3 {
     random_vector_in_unit_sphere().unit_direction()
+}
+
+pub fn random_in_unit_disk() -> Vector3 {
+    let mut rng = rand::thread_rng();
+    loop {
+        let p = Vector3::new(
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+            0.0,
+        );
+        if p.length_squared() < 1.0 {
+            return p;
+        }
+    }
 }
 
 pub type Point3 = Vector3;
