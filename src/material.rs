@@ -1,5 +1,7 @@
 use std::fmt;
 
+use rand::Rng;
+
 use crate::{ray::{HitRecord, Ray}, color::Color, point::{random_unit_vector, random_vector_in_unit_sphere}};
 
 pub trait Material: fmt::Debug{
@@ -86,7 +88,10 @@ impl Material for Dialectric {
         let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
         let cannot_refract = refraction_ratio * sin_theta > 1.0;
 
-        let direction = match cannot_refract {
+        let mut rng = rand::thread_rng();
+        let no_refraction = cannot_refract || reflectance(cos_theta, refraction_ratio) > rng.gen_range(0.0..1.0);
+
+        let direction = match no_refraction {
             true => unit_direction.reflect(&hit.normal),
             false => unit_direction.refract(&hit.normal, refraction_ratio),
         };
@@ -94,4 +99,11 @@ impl Material for Dialectric {
         let scattered = Ray {origin: hit.point, direction};
         return Some((scattered, attenuation));
     }
+}
+
+fn reflectance(cosine: f64, ref_index: f64) -> f64 {
+    // Use Schlick's approximation for reflectance
+    let r0 = (1.0 - ref_index) / (1.0 + ref_index);
+    let r0_squared = r0 * r0;
+    return r0_squared + (1.0 - r0_squared) * f64::powi(1.0 - cosine, 5);
 }

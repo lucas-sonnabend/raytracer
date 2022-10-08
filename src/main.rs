@@ -58,38 +58,43 @@ fn create_image() -> () {
 
 
     // World
-    let ground_material = Box::new(LambertianMaterial::new(
+    let ground_material = LambertianMaterial::new(
         Color {r: 0.8, g: 0.8, b: 0.0}
-    ));
-    let material_center = Box::new(Dialectric::new(1.5));
-    let material_left = Box::new(Metal::new(
+    );
+    let material_center = Dialectric::new(1.5);
+    let material_left = Metal::new(
         Color {r: 0.8, g: 0.8, b: 0.8}, 0.3
-    ));
-    let material_right = Box::new(Metal::new(
+    );
+    let material_right = Metal::new(
         Color {r: 0.8, g: 0.6, b: 0.2}, 1.0,
-    ));
+    );
 
     let objects = HittableList {
         objects: vec![
             Box::new(Sphere {
                 center: Point3 {x: 0.0, y: -100.5, z: -1.0},
                 radius: 100.0,
-                material: ground_material,
+                material: Box::new(ground_material),
             }),
             Box::new(Sphere {
                 center: Point3 {x: 0.0, y: 0.0, z: -1.0},
                 radius: 0.5,
-                material: material_center,
+                material: Box::new(material_center),
+            }),
+            Box::new(Sphere {
+                center: Point3 {x: 0.0, y: 0.0, z: -1.0},
+                radius: -0.45,
+                material: Box::new(material_center),
             }),
             Box::new(Sphere {
                 center: Point3 {x: -1.0, y: 0.0, z: -1.0},
                 radius: 0.5,
-                material: material_left,
+                material: Box::new(material_left),
             }),
             Box::new(Sphere {
                 center: Point3 {x: 1.0, y: 0.0, z: -1.0},
                 radius: 0.5,
-                material: material_right,
+                material: Box::new(material_right),
             }),
         ]
     };
