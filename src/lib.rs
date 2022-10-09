@@ -5,5 +5,7 @@ pub mod sphere;
 pub mod torus;
 pub mod material;
 pub mod camera;
+pub mod raytracer;
+pub mod config;
 
 extern crate approx;
