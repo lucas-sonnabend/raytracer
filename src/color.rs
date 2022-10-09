@@ -36,7 +36,19 @@ impl Color {
             b: f64::sqrt(self.b),
         }
     }
+
+    pub fn to_simple(&self) -> Pixel {
+        (
+            (255.999 * self.r) as u8,
+            (255.999 * self.g) as u8,
+            (255.999 * self.b) as u8,
+        )
+    }
 }
+
+pub type Pixel = (u8, u8, u8);
+
+pub type Pixels = Vec<Pixel>;
 
 impl Add<Color> for Color {
     type Output = Color;

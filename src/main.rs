@@ -6,7 +6,7 @@ use rand::distributions::WeightedError;
 use rand::seq::SliceRandom;
 
 use raytracer::camera::Camera;
-use raytracer::color::Color;
+use raytracer::color::{Color, Pixels};
 use raytracer::material::{LambertianMaterial, Metal, Dialectric, Material};
 use raytracer::point::{Point3};
 use raytracer::sphere::Sphere;
@@ -158,10 +158,10 @@ pub fn create_simple_world() -> HittableList {
 fn create_image() -> Result<(), WeightedError> {
     let aspect_ratio = 4.0 / 3.0;
     let image_width = 800;
-    let image_height = (image_width as f64 / aspect_ratio) as i32;
+    let image_height = (image_width as f64 / aspect_ratio) as usize;
     let samples_per_pixel = 100;
     let max_depth = 50;
-    let mut rng = rand::thread_rng();
+
 
 
     let objects = create_random_world()?;
@@ -175,25 +175,57 @@ fn create_image() -> Result<(), WeightedError> {
         0.1,
     );
 
-    println!("P3\n{image_width} {image_height}\n255");
+    let mut pixels = vec![(0 as u8, 0 as u8, 0 as u8); image_width * image_height as usize] as Pixels;
 
-    for j in (0..image_height).rev() {
-        eprint!("\r Scanlines remaining {j}");
+    for j in 0..image_height {
+        eprint!("\r lines scanned {j}");
         io::stderr().flush().unwrap();
-        for i in 0..image_width {
-            let mut color = Color {r: 0.0, g: 0.0, b: 0.0};
-            for _ in 0..samples_per_pixel {
-                let ray = camera.get_ray(
-                    (i as f64 + rng.gen_range(0.0..1.0)) / (image_width - 1) as f64,
-                    (j as f64 + rng.gen_range(0.0..1.0)) / (image_height - 1) as f64
-                );
-                color = color + ray_color(&ray, &objects, max_depth);
-            }
-            color = (color / (samples_per_pixel as f64)).gamma_correct();
-
-
-            println!("{color}");
-        } 
+        render_line(
+            j,
+            image_width,
+            image_height,
+            &mut pixels,
+            &camera,
+            samples_per_pixel,
+            &objects,
+            max_depth,
+        )
     };
+    print_image(image_width, image_height, &pixels);
     return Ok(());
+}
+
+fn render_line(
+    line_no: usize,
+    image_width: usize,
+    image_height: usize,
+    pixels: &mut Pixels,
+    camera: &Camera,
+    samples_per_pixel: i32,
+    objects: &HittableList,
+    max_depth: i32,
+) {
+    let mut rng = rand::thread_rng();
+    for i in 0..image_width {
+        let mut color = Color {r: 0.0, g: 0.0, b: 0.0};
+        for _ in 0..samples_per_pixel {
+            let ray = camera.get_ray(
+                (i as f64 + rng.gen_range(0.0..1.0)) / (image_width - 1) as f64,
+                (line_no as f64 + rng.gen_range(0.0..1.0)) / (image_height - 1) as f64
+            );
+            color = color + ray_color(&ray, objects, max_depth);
+        }
+        color = (color / (samples_per_pixel as f64)).gamma_correct();
+        pixels[(image_height - line_no - 1) * image_width + i] = color.to_simple();
+    }
+}
+
+fn print_image(image_width: usize, image_height: usize, pixels: &Pixels) {
+    println!("P3\n{image_width} {image_height}\n255");
+    for j in 0..image_height {
+        for i in 0..image_width {
+            let pixel = pixels[j * image_width + i];
+            println!("{} {} {}", pixel.0, pixel.1, pixel.2);
+        }
+    }
 }
