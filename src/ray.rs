@@ -35,6 +35,9 @@ pub struct HittableList {
     pub objects: Vec<Box<dyn Hittable>>,
 }
 
+unsafe impl Send for HittableList {}
+unsafe impl Sync for HittableList {}
+
 pub fn new_hittable_list () -> HittableList{
     HittableList { objects: vec![] }
 }

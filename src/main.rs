@@ -1,19 +1,19 @@
 pub mod point;
 
-use std::io::{self, Write};
 use rand::Rng;
 use rand::distributions::WeightedError;
 use rand::seq::SliceRandom;
+use rayon::prelude::*;
 
 use raytracer::camera::Camera;
-use raytracer::color::{Color, Pixels};
+use raytracer::color::{Color, Pixel, Pixels};
 use raytracer::material::{LambertianMaterial, Metal, Dialectric, Material};
 use raytracer::point::{Point3};
 use raytracer::sphere::Sphere;
 // use raytracer::torus::Torus;
 use raytracer::ray::{Hittable, HittableList, Ray};
 
-fn ray_color(ray: &Ray, objects: &HittableList, max_depth: i32) -> Color {
+fn ray_color(ray: &Ray, objects: &HittableList, max_depth: u32) -> Color {
     let mut cur_ray = *ray;
     let mut cur_color = Color {r: 0.0, g: 0.0, b: 0.0 };
     let mut color_coef = Color {r: 1.0, g: 1.0, b: 1.0 };
@@ -155,13 +155,22 @@ pub fn create_simple_world() -> HittableList {
     return objects;
 }
 
-fn create_image() -> Result<(), WeightedError> {
-    let aspect_ratio = 4.0 / 3.0;
-    let image_width = 800;
-    let image_height = (image_width as f64 / aspect_ratio) as usize;
-    let samples_per_pixel = 100;
-    let max_depth = 50;
+#[derive(Debug)]
+struct Config {
+    width: usize,
+    height: usize,
+    samples_per_pixel: u32,
+    max_depth: u32,
+}
 
+fn create_image() -> Result<(), WeightedError> {
+    let scene = Config {
+        width: 800,
+        height: 600,
+        samples_per_pixel: 100,
+        max_depth: 50,
+    };
+    let aspect_ratio = scene.width as f64 / scene.height as f64;
 
 
     let objects = create_random_world()?;
@@ -175,48 +184,35 @@ fn create_image() -> Result<(), WeightedError> {
         0.1,
     );
 
-    let mut pixels = vec![(0 as u8, 0 as u8, 0 as u8); image_width * image_height as usize] as Pixels;
+    let mut pixels = vec![(0 as u8, 0 as u8, 0 as u8); scene.width * scene.height as usize];
 
-    for j in 0..image_height {
-        eprint!("\r lines scanned {j}");
-        io::stderr().flush().unwrap();
-        render_line(
-            j,
-            image_width,
-            image_height,
-            &mut pixels,
-            &camera,
-            samples_per_pixel,
-            &objects,
-            max_depth,
-        )
-    };
-    print_image(image_width, image_height, &pixels);
+    let bands = pixels.par_chunks_mut(scene.width).enumerate();
+    bands.for_each(|(i, pixels)|render_line(i, &scene, pixels, &camera, &objects));
+
+    print_image(scene.width, scene.height, &pixels);
     return Ok(());
 }
 
 fn render_line(
     line_no: usize,
-    image_width: usize,
-    image_height: usize,
-    pixels: &mut Pixels,
+    scene: &Config,
+    pixels: &mut [Pixel],
     camera: &Camera,
-    samples_per_pixel: i32,
     objects: &HittableList,
-    max_depth: i32,
 ) {
     let mut rng = rand::thread_rng();
-    for i in 0..image_width {
+    let j = scene.height - 1 - line_no;
+    for i in 0..scene.width {
         let mut color = Color {r: 0.0, g: 0.0, b: 0.0};
-        for _ in 0..samples_per_pixel {
+        for _ in 0..scene.samples_per_pixel {
             let ray = camera.get_ray(
-                (i as f64 + rng.gen_range(0.0..1.0)) / (image_width - 1) as f64,
-                (line_no as f64 + rng.gen_range(0.0..1.0)) / (image_height - 1) as f64
+                (i as f64 + rng.gen_range(0.0..1.0)) / (scene.width - 1) as f64,
+                (j as f64 + rng.gen_range(0.0..1.0)) / (scene.height - 1) as f64
             );
-            color = color + ray_color(&ray, objects, max_depth);
+            color = color + ray_color(&ray, objects, scene.max_depth);
         }
-        color = (color / (samples_per_pixel as f64)).gamma_correct();
-        pixels[(image_height - line_no - 1) * image_width + i] = color.to_simple();
+        color = (color / (scene.samples_per_pixel as f64)).gamma_correct();
+        pixels[i] = color.to_simple();
     }
 }
 
